@@ -1,0 +1,12 @@
+#Ignore rule's
+
+#ignore file extensions.
+*.json
+*.jpg
+
+#ignore files
+Template.ps1
+
+#Exclude Rules
+#Files that start with Example_
+!Example_*
