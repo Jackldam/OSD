@@ -4,8 +4,11 @@
 *.json
 *.jpg
 
+#Ignore configs
+*Config*
+
 #ignore files
-Template.ps1
+!*Template*
 
 #Exclude Rules
 #Files that start with Example_

@@ -1,0 +1,42 @@
+<Configuration ID="a0ab4eb2-3d8e-4fdb-b27c-c1530edb7892">
+  <Add OfficeClientEdition="64" Channel="SemiAnnual" MigrateArch="TRUE">
+    <Product ID="O365ProPlusRetail">
+      <Language ID="MatchOS" />
+      <Language ID="MatchPreviousMSI" />
+      <ExcludeApp ID="Groove" />
+      <ExcludeApp ID="OneDrive" />
+      <ExcludeApp ID="Bing" />
+    </Product>
+    <Product ID="LanguagePack">
+      <Language ID="MatchOS" />
+      <Language ID="MatchPreviousMSI" />
+      <ExcludeApp ID="Bing" />
+    </Product>
+    <Product ID="ProofingTools">
+      <Language ID="nl-nl" />
+      <Language ID="en-us" />
+    </Product>
+  </Add>
+  <Property Name="SharedComputerLicensing" Value="0" />
+  <Property Name="FORCEAPPSHUTDOWN" Value="FALSE" />
+  <Property Name="DeviceBasedLicensing" Value="0" />
+  <Property Name="SCLCacheOverride" Value="0" />
+  <Updates Enabled="TRUE" />
+  <RemoveMSI />
+  <AppSettings>
+    <User Key="software\microsoft\office\16.0\common\toolbars" Name="tooltips" Value="0" Type="REG_DWORD" App="office16" Id="L_DoNotShowScreenTipsontoolbars" />
+    <User Key="software\microsoft\office\16.0\common\general" Name="shownfirstrunoptin" Value="1" Type="REG_DWORD" App="office16" Id="L_DisableOptinWizard" />
+    <User Key="software\microsoft\office\16.0\common" Name="qmenable" Value="0" Type="REG_DWORD" App="office16" Id="L_EnableCustomerExperienceImprovementProgram" />
+    <User Key="software\microsoft\office\16.0\common\languageresources\enabledlanguages" Name="nl-nl" Value="3" Type="REG_DWORD" App="office16" Id="L_DutchNetherlands" />
+    <User Key="software\microsoft\office\16.0\common\languageresources\enabledlanguages" Name="en-us" Value="3" Type="REG_DWORD" App="office16" Id="L_EnglishUS" />
+    <User Key="software\microsoft\office\16.0\common\feedback" Name="surveyenabled" Value="0" Type="REG_DWORD" App="office16" Id="L_SendSurvey" />
+    <User Key="software\microsoft\office\16.0\common\feedback" Name="includescreenshot" Value="0" Type="REG_DWORD" App="office16" Id="L_Screenshot" />
+    <User Key="software\microsoft\office\16.0\common\feedback" Name="includeemail" Value="0" Type="REG_DWORD" App="office16" Id="L_EmailCollection" />
+    <User Key="software\microsoft\office\16.0\common\feedback" Name="feedbackincludelog" Value="0" Type="REG_DWORD" App="office16" Id="L_LogCollection" />
+    <User Key="software\microsoft\office\16.0\firstrun" Name="disablemovie" Value="1" Type="REG_DWORD" App="office16" Id="L_DisableMovie" />
+    <User Key="software\microsoft\office\16.0\firstrun" Name="bootedrtm" Value="1" Type="REG_DWORD" App="office16" Id="L_DisableOfficeFirstrun" />
+    <User Key="software\microsoft\office\16.0\common" Name="default ui theme" Value="3" Type="REG_DWORD" App="office16" Id="L_DefaultUIThemeUser" />
+    <User Key="Software\Microsoft\Office\15.0\Common\General" Name="ShownFileFmtPrompt" Value="1" Type="REG_DWORD" App="office16" Id="L_ShownFileFmtPrompt" />
+  </AppSettings>
+  <Display Level="None" AcceptEULA="TRUE" />
+</Configuration>
