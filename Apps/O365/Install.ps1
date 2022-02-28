@@ -43,7 +43,7 @@ $C2RDownloadfolder = "$env:TEMP\Provisioning\$ApplicationName"
 
 #Test Application & version
 $TestCodeBlock = { Get-CimInstance -ClassName "Win32_InstalledWin32Program" -Filter "Name = `"$ApplicationName`"" }
-$Installcheck = . $TestCodeBlock
+$Installcheck = Invoke-Command -ScriptBlock $TestCodeBlock
 
 #endregion
 
@@ -84,7 +84,7 @@ if (-not($Installcheck.Version -ge $Version)) {
 
     #region Test if installation successfull
 
-    $Installcheck = . $TestCodeBlock
+    $Installcheck = Invoke-Command -ScriptBlock $TestCodeBlock
 
     if (-not($Installcheck.Version -ge $Version)) {
         Write-Host "Application:[$ApplicationName] Version:[$Version] installation succesfull"
