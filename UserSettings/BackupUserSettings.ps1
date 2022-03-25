@@ -42,8 +42,51 @@ Function Get-OneDrivePath {
 
 #endregion
 
+#region Sync-Folder
+
+function Sync-Folder {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]
+        $Source,
+        [Parameter(Mandatory)]
+        [string]
+        $Destination,
+        [Parameter()]
+        [array]
+        $Exclude
+    )
+    
+    $Params = @(
+        , "/mir"
+        #, "/e"
+        #, "/purge"
+        , "/sl"
+        , "/r:5"
+        , "/w:5"
+        , "/ns"
+        , "/nc"
+        , "/nfl"
+        , "/ndl"
+        , "/np"
+        , "/njh"
+        , "/njs"
+    )
+
+    $Exclude | ForEach-Object {
+        $Params += @(
+            "/xd"
+            "`"$_`""
+        )
+    }
+    . Robocopy.exe "`"$Source`"" "`"$Destination`"" @Params | Out-Null
+
+}
+
 #endregion
 
+#endregion
 
 #region Create TempFolder
 
@@ -61,24 +104,9 @@ if (!(Test-Path -Path $SettingsBackupTempDestination)) {
 
 #region Backup Appdata
 
-$Params = @(
-    , "`"$env:APPDATA`""
-    , "`"$SettingsBackupTempDestination\Roaming`""
-    , "/mir"
-    , "/sl"
-    , "/r:5"
-    , "/w:5"
-    , "/ns"
-    , "/nc"
-    , "/nfl"
-    , "/ndl"
-    , "/np"
-    , "/njh"
-    #, "/njs"
-)
-    
-. Robocopy.exe $Params
-
+Sync-Folder -Source "$env:APPDATA" `
+    -Destination "$SettingsBackupTempDestination\Roaming" `
+    -Exclude @("Teams")
 
 #endregion
 
@@ -138,12 +166,12 @@ if (Test-Path -Path "$env:TEMP\SettingsBackup.7z") {
 #endregion
 
 #region Copy local backup to Cloud
-$i = "$(Get-OneDrivePath)\SettingsBackup\$env:ComputerName"
+$i = "$(Get-OneDrivePath)\SettingsBackup"
 if (!(Test-Path -Path $i)) {
     New-Item -Path $i -ItemType Directory -Force
 }
 
 Copy-Item -Path "$env:TEMP\SettingsBackup.7z" `
-    -Destination "$i\SettingsBackup.7z" `
+    -Destination "$i\$env:ComputerName.7z" `
     -Force
 #endregion

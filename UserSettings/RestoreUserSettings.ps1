@@ -40,142 +40,65 @@ Function Get-OneDrivePath {
 
 #endregion
 
-#region Sync-ToTempFolder
+#region Sync-Folder
 
-function Sync-ToTempFolder {
+function Sync-Folder {
     [CmdletBinding()]
     param (
-        # Parameter help description
         [Parameter(Mandatory)]
         [string]
         $Source,
-        # Parameter help description
         [Parameter(Mandatory)]
         [string]
-        $Destination
+        $Destination,
+        [Parameter()]
+        [array]
+        $Exclude
+    )
+    
+    $Params = @(
+        , "/mir"
+        #, "/e"
+        #, "/purge"
+        , "/sl"
+        , "/r:5"
+        , "/w:5"
+        , "/ns"
+        , "/nc"
+        , "/nfl"
+        , "/ndl"
+        , "/np"
+        , "/njh"
+        , "/njs"
     )
 
-    try {
-        
-        #Get source folder name
-        $SFoldername = Split-Path -Path $Source -Leaf
-
-        #Declare destination with source folder name
-        $Destination = "$Destination\$SFoldername"
-
-        #* create destination folder
-        #Region
-        
-        #Test Destination
-        if (!(Test-Path -Path "$Destination")) {
-        
-            Write-Verbose "Creating folder `"$Destination`""
-            #Create directory if not already present
-            New-Item -Path "$Destination" `
-                -ItemType Directory `
-                -Force | Out-Null
-        }
-
-        #endregion
-
-        #Region mirror data to temp folder
-
-        $Params = @(
-            , "`"$Source`""
-            , "`"$Destination`""
-            , "/mir"
-            , "/sl"
-            , "/r:100"
-            , "/w:1"
-            , "/ns"
-            , "/nc"
-            , "/nfl"
-            , "/ndl"
-            , "/np"
-            , "/njh"
-            , "/njs"
+    $Exclude | ForEach-Object {
+        $Params += @(
+            "/xd"
+            "`"$_`""
         )
-
-        . Robocopy.exe $Params
-
-        $Source | Out-File -FilePath "$Destination\SourcePath.txt" -Encoding utf8 -Force | Out-Null
-
-        #endregion
-        
     }
-    catch {
-        throw $_.exception.message
-    }
+    . Robocopy.exe "`"$Source`"" "`"$Destination`"" @Params | Out-Null
+
 }
 
 #endregion
 
-#region Restore-Backup
+#region Remove-PathToLongDirectory
 
-function Restore-Backup {
-    [CmdletBinding()]
-    param (
-        # Parameter help description
-        [Parameter(Mandatory)]
-        [string]
-        $Source,
-        # Parameter help description
-        [Parameter(Mandatory)]
-        [string]
-        $Destination
+function Remove-PathToLongDirectory {
+    Param(
+        [string]$directory
     )
 
-    try {
-        
-        #Get source folder name
-        $SFoldername = Split-Path -Path $Source -Leaf
+    # create a temporary (empty) directory
+    $parent = [System.IO.Path]::GetTempPath()
+    [string] $name = [System.Guid]::NewGuid()
+    $tempDirectory = New-Item -ItemType Directory -Path (Join-Path $parent $name)
 
-        #Declare destination with source folder name
-        $Destination = "$Destination"
-
-        #* create destination folder
-        #Region
-        
-        #Test Destination
-        if (!(Test-Path -Path "$Destination")) {
-        
-            Write-Verbose "Creating folder `"$Destination`""
-            #Create directory if not already present
-            New-Item -Path "$Destination" `
-                -ItemType Directory `
-                -Force | Out-Null
-        }
-
-        #endregion
-
-        #Region mirror data to temp folder
-
-        $Params = @(
-            , "`"$Source`""
-            , "`"$Destination`""
-            , "/mir"
-            , "/sl"
-            , "/r:100"
-            , "/w:1"
-            , "/ns"
-            , "/nc"
-            , "/nfl"
-            , "/ndl"
-            , "/np"
-            , "/njh"
-            , "/njs"
-        )
-
-        . Robocopy.exe $Params
-
-        $Source | Out-File -FilePath "$Destination\SourcePath.txt" -Encoding utf8 -Force | Out-Null
-
-        #endregion
-        
-    }
-    catch {
-        throw $_.exception.message
-    }
+    robocopy /MIR $tempDirectory.FullName $directory | Out-Null
+    Remove-Item $directory -Force | Out-Null
+    Remove-Item $tempDirectory -Force | Out-Null
 }
 
 #endregion
@@ -205,25 +128,33 @@ if (!($BackupFile)) {
     exit
 }
 
-#endregion
-
-#Region Restore backup
-
-$BackupFile.fullname | ForEach-Object {
-
-    Expand-Archive -Path $_ `
-        -DestinationPath $Source `
-        -Force
+if (Test-Path -Path $Source) {
+    Remove-PathToLongDirectory -directory $Source
 }
 
-(Get-ChildItem -Path $Source -Directory).FullName | ForEach-Object {
-    $Path = $_ 
+. "$PSScriptRoot\7zip\7za.exe" x "$($BackupFile.FullName)" -o"$Source" -r
+
+#endregion
+
+#Region Restore Appdata backup
+
+Sync-Folder -Source "$Source\Roaming"  `
+    -Destination $env:APPDATA
+
+#endregion
+
+#region recover Wifi networks
+
+(Get-ChildItem "$Source\WlanProfiles").FullName | ForEach-Object {
+    $i = @(
+        , "wlan"
+        , "add"
+        , "profile"
+        , "filename=`"$_`""
+        , "user=all"
+    )
     
-    $Destination = Get-ChildItem $_ -Filter "OriginalPath.txt" | Get-Content
-    
-    Restore-Backup -Source "$Path" `
-        -Destination $Destination | Out-Null
-        $LASTEXITCODE
+    netsh.exe @i
 }
 
 #endregion
