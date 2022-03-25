@@ -17,6 +17,9 @@
 param (
 )
 
+$ErrorActionPreference = "Stop"
+$SettingsBackupTempDestination = "$env:TEMP\SettingsBackup"
+
 #region Functions
 
 #region Get-OneDrivePath
@@ -39,150 +42,108 @@ Function Get-OneDrivePath {
 
 #endregion
 
-#region Sync-ToTempFolder
-
-function Sync-ToTempFolder {
-    [CmdletBinding()]
-    param (
-        # Parameter help description
-        [Parameter(Mandatory)]
-        [string]
-        $Source,
-        # Parameter help description
-        [Parameter(Mandatory)]
-        [string]
-        $Destination
-    )
-
-    try {
-        
-        #Get source folder name
-        $SFoldername = Split-Path -Path $Source -Leaf
-
-        #Declare destination with source folder name
-        $Destination = "$Destination\$SFoldername"
-
-        #* create destination folder
-        #Region
-        
-        #Test Destination
-        if (!(Test-Path -Path "$Destination")) {
-        
-            Write-Verbose "Creating folder `"$Destination`""
-            #Create directory if not already present
-            New-Item -Path "$Destination" `
-                -ItemType Directory `
-                -Force | Out-Null
-        }
-
-        #endregion
-
-        #Region mirror data to temp folder
-
-        $Params = @(
-            , "`"$Source`""
-            , "`"$Destination`""
-            , "/mir"
-            , "/sl"
-            , "/r:5"
-            , "/w:1"
-            , "/ns"
-            , "/nc"
-            , "/nfl"
-            , "/ndl"
-            , "/np"
-            , "/njh"
-            , "/njs"
-        )
-
-        . Robocopy.exe $Params | Out-Null
-
-        $Source | Out-File -FilePath "$Destination\OriginalPath.txt" -Encoding utf8 -Force
-
-        #endregion
-        
-    }
-    catch {
-        throw $_.exception.message
-    }
-}
-
 #endregion
 
-#endregion
 
-#region Variables
+#region Create TempFolder
 
-#Destination of the backup
-$DestinationPath = "$(Get-OneDrivePath)\SettingsBackup"
-
-#Temporary local location prior to compression & copy to OneDrive
-$TempDestinationPath = "$env:TEMP\SettingsBackup"
-
-#Folders to backup excluding Microsoft folder
-$FoldersToBackup = @((Get-ChildItem -Path $env:APPDATA -Exclude "Microsoft").FullName)
-
-#Adding Outlook signatures
-$FoldersToBackup += @(
-    , "C:\Users\jdenouden\AppData\Roaming\Microsoft\Signatures"
-)
-
-#endregion
-
-#Region create hidden destination folder
+#Test if temp folder exists and if not then create it
+if (!(Test-Path -Path $SettingsBackupTempDestination)) {
         
-#Test Destination
-if (!(Test-Path -Path "$DestinationPath")) {
-        
-    Write-Verbose "Creating folder `"$DestinationPath`""
+    Write-Verbose "Creating folder `"$SettingsBackupTempDestination`""
     #Create directory if not already present
-    $Directory = New-Item -Path "$DestinationPath" `
+    New-Item -Path "$SettingsBackupTempDestination" `
         -ItemType Directory `
-        -Force
-
-    $Directory.Attributes = "Hidden"
+        -Force | Out-Null
 }
 
 #endregion
 
-#Region Backup
+#region Backup Appdata
 
-$Results = $FoldersToBackup | ForEach-Object {
+$Params = @(
+    , "`"$env:APPDATA`""
+    , "`"$SettingsBackupTempDestination\Roaming`""
+    , "/mir"
+    , "/sl"
+    , "/r:5"
+    , "/w:5"
+    , "/ns"
+    , "/nc"
+    , "/nfl"
+    , "/ndl"
+    , "/np"
+    , "/njh"
+    #, "/njs"
+)
     
-    $Path = $_
-    #Test if folder exists and if not skip it.
-    if (Test-Path -Path $Path) {
-        Sync-ToTempFolder -Source $Path `
-            -Destination $TempDestinationPath
-            
-        [PSCustomObject]@{
-            SourcePath = $Path
-            ExitCode   = $LASTEXITCODE
-        }
+. Robocopy.exe $Params
 
-    }
+
+#endregion
+
+#region backup Wifi Settings
+
+#get all wlan profiles
+$list = . netsh.exe wlan show profiles
+
+#Use regex to get the profile names
+$regex = "\s{2,}:.(?'Profile'.*)"
+$List = $list | ForEach-Object {
+    $i = [regex]::Matches($_, $regex)
+    $i.Groups | Where-Object Name -EQ Profile
 }
 
+#Test if folder exists
+$WLanTemp = "$SettingsBackupTempDestination\WlanProfiles"
+if (!(Test-Path -Path $WLanTemp)) { New-Item -Path $WLanTemp -ItemType Directory -Force }
 
-#$Results | Out-String
-$Results = $Results | Where-Object {
-    ($_.ExitCode -ne 0) -and
-    ($_.ExitCode -ne 1) -and
-    ($_.ExitCode -ne 2)
-}
-
-if ($Results){
-    throw "Nobackup made `n$($Results | Out-String)"
+#export each profile to xml to desired backup location
+$List.value | ForEach-Object {
+    $Params = @(
+        , "wlan"
+        , "export"
+        , "profile"
+        , "$_"
+        , "key=clear"
+        , "Folder=`"$WLanTemp`""
+    )
+    . netsh.exe @Params | Out-Null
 }
 
 #endregion
 
-#Region CompressBackup
+#region Save all installed applications in CSV list
 
-#create backup
-Compress-Archive -Path "$TempDestinationPath\*" `
-    -DestinationPath "$DestinationPath\$env:COMPUTERNAME.zip" `
-    -CompressionLevel Optimal `
+Get-CimInstance -Namespace "root\cimv2" -ClassName "Win32_InstalledWin32Program" | Sort-Object Name | Select-Object Name, Version |
+Export-Csv -Path "$SettingsBackupTempDestination\InstalledApplications.csv" `
+    -Delimiter ";" `
+    -NoTypeInformation `
     -Force
 
+#endregion
+
+#region #TODO Backup Office Settings
+
+#endregion
+
+#region Compress tempfolder backup to 7z
+
+if (Test-Path -Path "$env:TEMP\SettingsBackup.7z") {
+    Remove-Item "$env:TEMP\SettingsBackup.7z" -Force
+}
+
+. $PSScriptRoot\7zip\7za.exe a -t7z -mx=9 "$env:TEMP\SettingsBackup.7z" "$SettingsBackupTempDestination\*"
+
+#endregion
+
+#region Copy local backup to Cloud
+$i = "$(Get-OneDrivePath)\SettingsBackup\$env:ComputerName"
+if (!(Test-Path -Path $i)) {
+    New-Item -Path $i -ItemType Directory -Force
+}
+
+Copy-Item -Path "$env:TEMP\SettingsBackup.7z" `
+    -Destination "$i\SettingsBackup.7z" `
+    -Force
 #endregion
