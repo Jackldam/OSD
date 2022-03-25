@@ -132,7 +132,7 @@ if (Test-Path -Path $Source) {
     Remove-PathToLongDirectory -directory $Source
 }
 
-. "$PSScriptRoot\7zip\7za.exe" x "$($BackupFile.FullName)" -o"$Source" -r
+. "$PSScriptRoot\7zip\x64\7za.exe" x "$($BackupFile.FullName)" -o"$Source" -r
 
 #endregion
 

@@ -161,7 +161,7 @@ if (Test-Path -Path "$env:TEMP\SettingsBackup.7z") {
     Remove-Item "$env:TEMP\SettingsBackup.7z" -Force
 }
 
-. $PSScriptRoot\7zip\7za.exe a -t7z -mx=9 "$env:TEMP\SettingsBackup.7z" "$SettingsBackupTempDestination\*"
+. $PSScriptRoot\7zip\x64\7za.exe a -t7z -mx=9 "$env:TEMP\SettingsBackup.7z" "$SettingsBackupTempDestination\*"
 
 #endregion
 
