@@ -139,7 +139,7 @@ if (Test-Path -Path $Source) {
 #Region Restore Appdata backup
 
 Sync-Folder -Source "$Source\Roaming"  `
-    -Destination $env:APPDATA
+    -Destination $DestinationPath
 
 #endregion
 
