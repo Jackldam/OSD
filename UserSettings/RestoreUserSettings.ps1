@@ -128,8 +128,18 @@ if (!($BackupFile)) {
     exit
 }
 
+
 if (Test-Path -Path $Source) {
-    Remove-PathToLongDirectory -directory $Source
+
+    if (($PSVersionTable.PSVersion) -lt [version]$("7.0.0.0")) {
+        #Use \\?\ so powershell can remove supper long paths
+        Remove-Item -Path "\\?\$Source" -Recurse -Force
+    }
+    else{
+        Remove-Item -Path "$Source" -Recurse -Force
+    }
+
+    
 }
 
 . "$PSScriptRoot\7zip\x64\7za.exe" x "$($BackupFile.FullName)" -o"$Source" -r
