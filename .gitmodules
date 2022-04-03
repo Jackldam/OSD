@@ -1,0 +1,4 @@
+[submodule "SH.PSFunctions"]
+	path = SH.PSFunctions
+	url = https://ldam@dev.azure.com/ldam/SH.PSFunctions/_git/SH.PSFunctions
+	branch = main
