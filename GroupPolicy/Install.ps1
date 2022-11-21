@@ -16,9 +16,28 @@
 param (
 )
 
+#* Variables
+#region
+$VerbosePreference = "Continue"
+#endregion
+
+#* Create template folder if not exists
+#region
+$Path = "$PSScriptRoot\Template\PolicyDefinitions"
+if (!(Test-Path -Path $Path)) {
+    New-Item -Path $Path -ItemType Directory -Force
+}
+#endregion
+
+#* Import templates to local Machine
+#Region
+
 Get-ChildItem -Path $PSScriptRoot -Filter "PolicyDefinitions" -Recurse | ForEach-Object {
+    Write-Verbose "Importing $($_.FullName)"
     Copy-Item -Path $_.fullname `
         -Destination "$env:windir" `
         -Recurse `
         -Force
 }
+
+#endregion
