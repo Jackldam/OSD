@@ -22,6 +22,7 @@ param (
 
 #region Disable usage of wsus server.
 
+if (test-path -path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"){
 #Set registry key to disable wsus server usage
 Write-Host "Setting registrykey UseWUServer to 0"
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" `
@@ -32,7 +33,7 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\
 #restart Windows update service
 Write-Host "Restarting wuauserv service"
 Get-Service -Name "wuauserv" | Restart-Service -Force
-
+}
 #endregion
 
 if (-not $Uninstall) {
@@ -57,6 +58,7 @@ else {
 }
 
 #region Enable usage of wsus server.
+if (test-path -path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"){
 
 #Set registry key to enable wsus server usage
 Write-Host "Setting registrykey UseWUServer to 1"
@@ -68,5 +70,5 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\
 #restart Windows update service
 Write-Host "Restarting wuauserv service"
 Get-Service -Name "wuauserv" | Restart-Service -Force
-
+}
 #endregion

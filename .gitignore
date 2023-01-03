@@ -6,6 +6,7 @@
 
 #Ignore configs
 *Config*
+**/HPIA
 
 #ignore files
 !*Template*

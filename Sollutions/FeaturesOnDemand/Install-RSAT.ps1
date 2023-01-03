@@ -23,16 +23,17 @@ param (
 #region Disable usage of wsus server.
 
 #Set registry key to disable wsus server usage
-Write-Host "Setting registrykey UseWUServer to 0"
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" `
-    -Name "UseWUServer" `
-    -Value 0 `
-    -Force
+if (Test-Path -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU") {
+    Write-Host "Setting registrykey UseWUServer to 0"
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" `
+        -Name "UseWUServer" `
+        -Value 0 `
+        -Force
 
-#restart Windows update service
-Write-Host "Restarting wuauserv service"
-Get-Service -Name "wuauserv" | Restart-Service -Force
-
+    #restart Windows update service
+    Write-Host "Restarting wuauserv service"
+    Get-Service -Name "wuauserv" | Restart-Service -Force
+}
 #endregion
 
 if (-not $Uninstall) {
@@ -57,16 +58,17 @@ else {
 }
 
 #region Enable usage of wsus server.
+if (Test-Path -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU") {
 
-#Set registry key to enable wsus server usage
-Write-Host "Setting registrykey UseWUServer to 1"
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" `
-    -Name "UseWUServer" `
-    -Value 1 `
-    -Force
+    #Set registry key to enable wsus server usage
+    Write-Host "Setting registrykey UseWUServer to 1"
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" `
+        -Name "UseWUServer" `
+        -Value 1 `
+        -Force
 
-#restart Windows update service
-Write-Host "Restarting wuauserv service"
-Get-Service -Name "wuauserv" | Restart-Service -Force
-
+    #restart Windows update service
+    Write-Host "Restarting wuauserv service"
+    Get-Service -Name "wuauserv" | Restart-Service -Force
+}
 #endregion
