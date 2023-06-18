@@ -1,0 +1,9 @@
+Key;Name;Type;Value
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge;DefaultSearchProviderEnabled;DWORD;1
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge;DefaultSearchProviderSearchURL;STRING;{google:baseURL}search?q={searchTerms}&{google:RLZ}{google:originalQueryForSuggestion}{google:assistedQueryStats}{google:searchFieldtrialParameter}{google:searchClient}{google:sourceId}ie={inputEncoding}
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge;HomepageIsNewTabPage;DWORD;1
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge;HomepageLocation;STRING;https://google.com
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge;NewTabPageLocation;STRING;https://google.com
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge;RestoreOnStartup;DWORD;4
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge;ShowHomeButton;DWORD;1
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge\RestoreOnStartupURLs;1;STRING;https://google.com
